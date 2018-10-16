@@ -28,4 +28,4 @@ const styles = StyleSheet.create({
 		color:'red'
 	}
 })
-export default Header;
+export {Header};
