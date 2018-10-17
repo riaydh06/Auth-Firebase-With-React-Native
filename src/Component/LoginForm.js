@@ -1,9 +1,53 @@
 import React,{Component} from 'react';
-import {Card,CardSection,Button,Input} from './Common'
+import {Text,StyleSheet} from 'react-native';
+import firebase from 'firebase';
+import {Card,CardSection,Button,Input,Spinner} from './Common'
 
 class LoginForm extends Component {
-    state = {email:'',password:''};
+    state = {
+        email:'',
+        password:'',
+        error:'',
+        loading:false
+    };
+    renderButton(){
+        if(this.state.loading){
+            return <Spinner size="small" />
+        }
+
+        return (
+            <Button onPress={this.onButtonPress.bind(this)}>
+                Login
+            </Button>
+        );
+    }
+    onLoginSuccess(){
+        this.setState({
+            email:'',
+            password:'',
+            loading:false,
+            error:''
+        })
+    }
+    onLoginFail(){
+        this.setState({
+            error:'Authentication Failed',
+            loading:false
+        });
+    }
+    onButtonPress(){
+        const {email,password} = this.state;
+        this.setState({error:'',loading:true})
+        firebase.auth().signInWithEmailAndPassword(email,password)
+        .then(this.onLoginSuccess.bind(this))
+        .catch(()=>{
+            firebase.auth().createUserWithEmailAndPassword(email,password)
+            .then(this.onLoginSuccess.bind(this))
+            .catch(this.onLoginFail.bind(this))
+        })
+    }
     render(){
+        const {errorTextStyle} = styles
         return (
             <Card>
                 <CardSection>
@@ -23,13 +67,19 @@ class LoginForm extends Component {
                         placeholder="Password"
                     />
                 </CardSection>
+                <Text style={errorTextStyle}>{this.state.error}</Text>
                 <CardSection>
-                    <Button>
-                        Login
-                    </Button>
+                    {this.renderButton()}
                 </CardSection>
             </Card>
         );
     }
 }
+const styles = StyleSheet.create({
+    errorTextStyle:{
+        fontSize:20,
+        alignSelf:'center',
+        color:'red'
+    }
+});
 export default LoginForm;
